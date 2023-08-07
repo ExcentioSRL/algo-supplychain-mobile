@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DataVisualization extends StatefulWidget {
 
@@ -29,7 +30,7 @@ class _DataVisualizationState extends State<DataVisualization> {
             scrollDirection: Axis.vertical,
             itemCount: widget.historyNames.length,
             itemBuilder: (context, index) {
-              isNameShowed.add(false);
+              isNameShowed.add(true);
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -53,8 +54,11 @@ class _DataVisualizationState extends State<DataVisualization> {
           ),
         ),
         GestureDetector(
-          onTap: () {
-            //lancia URl
+          onTap: () async {
+            final Uri url = Uri.parse("https://testnet.algoexplorer.io/application/264415535");
+             if (!await launchUrl(url)) {
+              throw Exception('Could not launch $url');
+            }
           },
           child: Container(
             decoration: const BoxDecoration(

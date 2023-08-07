@@ -34,10 +34,10 @@ class _RootState extends State<Root> {
   final GlobalKey key = GlobalKey(debugLabel: 'qr');
   QRViewController? controller;
   bool showCamera = true;
-  Stock? result;
-  List<String>? historyNames;
-  List<String>? historyWallets;
 
+  Stock? result;
+  Stock? lastResult;
+  
   @override
   void dispose() {
     controller?.dispose();
@@ -47,12 +47,9 @@ class _RootState extends State<Root> {
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
-      print("Siamo qua!");
       setState(() {
         result = stockFromJson(scanData.code!);
-        historyNames = result?.historyNames;
-        historyWallets = result?.historyWallets;
-        print("QUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII: $showCamera");
+        lastResult ??= result;
       });
     });
   }
@@ -67,9 +64,10 @@ class _RootState extends State<Root> {
             onPressed: () {
               setState(() {
                 if(result != null){
+                  lastResult = result;
                   result = null;
                 }else{
-                  //IL RISULTATO PRECEDENTE?
+                  result = lastResult;
                 }
               });
             },
@@ -82,7 +80,7 @@ class _RootState extends State<Root> {
           key: key,
           onQRViewCreated: _onQRViewCreated,
         ) : 
-        DataVisualization(historyNames!,historyWallets!)
+        DataVisualization(result!.historyNames,result!.historyWallets)
     );
   }
 }
