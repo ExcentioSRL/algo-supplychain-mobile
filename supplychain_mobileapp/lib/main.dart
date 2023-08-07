@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:supplychain_mobileapp/data_visualization.dart';
+import 'package:supplychain_mobileapp/utils.dart';
 
 void main() {
   runApp(const MyApp());
@@ -8,54 +10,49 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: QRCodeWidget(),
+      home: const Root(),
     );
   }
 }
 
-class QRCodeWidget extends StatefulWidget {
-  const QRCodeWidget({super.key});
+class Root extends StatefulWidget {
+  const Root({super.key});
 
   @override
-  State<QRCodeWidget> createState() => _QRCodeWidgetState();
+  State<Root> createState() => _RootState();
 }
 
-class _QRCodeWidgetState extends State<QRCodeWidget> {
-
+class _RootState extends State<Root> {
   final GlobalKey key = GlobalKey(debugLabel: 'qr');
   QRViewController? controller;
-  String result = "";
-
+  bool showCamera = true;
+  Stock? result;
+  List<String>? historyNames;
+  List<String>? historyWallets;
 
   @override
-  void dispose(){
+  void dispose() {
     controller?.dispose();
     super.dispose();
   }
 
-  void _onQRViewCreated(QRViewController controller){
+  void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
-    controller.scannedDataStream.listen((scanData){
+    controller.scannedDataStream.listen((scanData) {
+      print("Siamo qua!");
       setState(() {
-       result = scanData.code!; 
+        result = stockFromJson(scanData.code!);
+        historyNames = result?.historyNames;
+        historyWallets = result?.historyWallets;
+        print("QUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII: $showCamera");
       });
     });
   }
@@ -65,32 +62,27 @@ class _QRCodeWidgetState extends State<QRCodeWidget> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Supplychain qr code reader"),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            flex: 5,
-            child: QRView(
-              key: key,
-              onQRViewCreated: _onQRViewCreated,
-
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Center(
-              child: Text(
-                "Ownership history of the product: $result",
-                style: const TextStyle(
-                  fontSize: 18,
-                  
-                ),
-              ),
-            ),
-          ),
-
+        actions: [
+          IconButton(
+            onPressed: () {
+              setState(() {
+                if(result != null){
+                  result = null;
+                }else{
+                  //IL RISULTATO PRECEDENTE?
+                }
+              });
+            },
+            icon: result != null ? const Icon(Icons.qr_code) : const Icon(Icons.abc),
+          )
         ],
       ),
+      body: result == null ? 
+        QRView(
+          key: key,
+          onQRViewCreated: _onQRViewCreated,
+        ) : 
+        DataVisualization(historyNames!,historyWallets!)
     );
   }
 }
